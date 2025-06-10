@@ -1,4 +1,26 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    
+    <!-- Camera Permissions -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+    
+    <!-- Notification Permissions -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    
+    <!-- Media Permissions -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
+    
+    <!-- Microphone Permission -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    
+    <!-- Internet Permission -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+
     <application
         android:label="schedula"
         android:name="${applicationName}"
