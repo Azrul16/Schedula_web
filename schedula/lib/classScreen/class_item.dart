@@ -68,21 +68,21 @@ class ClassItem extends StatelessWidget {
       isLast: isEnd,
       beforeLineStyle: const LineStyle(color: Colors.blueGrey, thickness: 5),
       indicatorStyle: IndicatorStyle(
-        width: 20,
+        width: 24,
         color: classSchedule.time.isAfter(now)
             ? Colors.blue.shade400
             : Colors.blueGrey,
         padding: const EdgeInsets.all(6),
       ),
       endChild: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: classSchedule.time.isAfter(now)
                 ? Colors.amber.shade300
                 : Colors.blueGrey.shade200,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
             children: [
@@ -93,11 +93,11 @@ class ClassItem extends StatelessWidget {
                     Text(
                       classSchedule.courseTitle,
                       style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold),
+                          fontSize: 22, fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 8),
                     Text(classSchedule.courseTecher),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 8),
                     Text(classSchedule.courseCode),
                   ],
                 ),
@@ -117,12 +117,14 @@ class ClassItem extends StatelessWidget {
                           });
                     },
                     icon: const Icon(Icons.edit),
+                    tooltip: 'Edit Class',
                   ),
                   IconButton(
                     onPressed: () {
                       showDeleteDialog(context);
                     },
                     icon: const Icon(Icons.delete),
+                    tooltip: 'Delete Class',
                   ),
                 ],
               ),
@@ -131,13 +133,13 @@ class ClassItem extends StatelessWidget {
         ),
       ),
       startChild: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 20),
+        padding: const EdgeInsets.symmetric(vertical: 24),
         child: Container(
           decoration: BoxDecoration(
             color: classSchedule.time.isAfter(now)
                 ? Colors.amber.shade300
                 : Colors.blueGrey.shade200,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -145,7 +147,7 @@ class ClassItem extends StatelessWidget {
               Text(
                 DateFormat('hh:mm a').format(classSchedule.time),
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.green,
                 ),
@@ -154,7 +156,7 @@ class ClassItem extends StatelessWidget {
               Text(
                 DateFormat('d MMM').format(classSchedule.time),
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
                 textAlign: TextAlign.center,

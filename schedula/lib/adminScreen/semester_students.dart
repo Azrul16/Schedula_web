@@ -90,23 +90,19 @@ class SemesterStudents extends StatelessWidget {
               final isCaptain = data['isCaptain'] ?? false;
 
               return Card(
-                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                 color: isCaptain ? Colors.red[100] : Colors.green[100],
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                elevation: 6,
                 child: ListTile(
                   title: Text(
                     '${user.fname} ${user.lname}',
                     style: GoogleFonts.lato(
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                      fontSize: 16,
                     ),
                   ),
                   subtitle: Text(
                     'Reg: ${user.reg}\nDept: ${user.dept}',
-                    style: GoogleFonts.lato(fontSize: 16),
+                    style: GoogleFonts.lato(),
                   ),
                   trailing: ElevatedButton(
                     style: ElevatedButton.styleFrom(

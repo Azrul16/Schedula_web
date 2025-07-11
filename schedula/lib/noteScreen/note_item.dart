@@ -150,12 +150,12 @@ class _NotesItemState extends State<NotesItem> {
 
     return PaperCard(
       backgroundColor: Colors.green[100],
-      borderRadius: 24,
+      borderRadius: 20,
       elevation: 6,
-      borderColor: Colors.green[800],
-      borderThickness: 12,
-      textureOpacity: 2,
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      borderColor: Colors.green[700],
+      borderThickness: 2,
+      textureOpacity: 0.5,
+      margin: const EdgeInsets.all(12),
       textureFit: BoxFit.cover,
       texture: true,
       child: Padding(
@@ -174,7 +174,7 @@ class _NotesItemState extends State<NotesItem> {
                       color: Colors.green[900],
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   Text(
                     'By ${widget.notesItem.courseTecher}',
                     style: GoogleFonts.lato(
@@ -194,8 +194,9 @@ class _NotesItemState extends State<NotesItem> {
                     color: Colors.red[700],
                     size: 28,
                   ),
+                  tooltip: 'Delete Note',
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 _isDownloading
                     ? Column(
                         children: [
@@ -203,10 +204,10 @@ class _NotesItemState extends State<NotesItem> {
                             width: 28,
                             height: 28,
                             child: CircularProgressIndicator(
-                              strokeWidth: 3,
+                              strokeWidth: 2,
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 8),
                           Text(
                             _progress,
                             style: GoogleFonts.lato(
@@ -223,6 +224,7 @@ class _NotesItemState extends State<NotesItem> {
                           color: Colors.green[700],
                           size: 28,
                         ),
+                        tooltip: 'Download Note',
                       ),
               ],
             ),

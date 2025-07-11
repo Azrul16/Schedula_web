@@ -113,22 +113,24 @@ class _AssignmentCardState extends State<AssignmentCard> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: isCompleted
-                ? [Colors.green.shade100, Colors.green.shade300]
-                : [Colors.orange.shade100, Colors.orange.shade300],
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: _toggleCompletion,
+        borderRadius: BorderRadius.circular(16),
+        hoverColor: Colors.orange.shade100,
+        splashColor: Colors.orange.shade200,
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isCompleted
+                  ? [Colors.green.shade100, Colors.green.shade200]
+                  : [Colors.orange.shade100, Colors.orange.shade200],
+            ),
           ),
-        ),
-        child: InkWell(
-          onTap: _toggleCompletion,
-          borderRadius: BorderRadius.circular(16),
           child: Padding(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.all(24.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -147,14 +149,14 @@ class _AssignmentCardState extends State<AssignmentCard> {
                     ),
                     if (_isLoading)
                       const SizedBox(
-                        width: 28,
-                        height: 28,
-                        child: CircularProgressIndicator(strokeWidth: 3),
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(),
                       )
                     else
                       Icon(
                         isCompleted ? Icons.check_circle : Icons.circle_outlined,
-                        color: isCompleted ? Colors.green.shade800 : Colors.orange.shade800,
+                        color: isCompleted ? Colors.green.shade700 : Colors.orange.shade700,
                         size: 28,
                       ),
                   ],
@@ -192,7 +194,7 @@ class _AssignmentCardState extends State<AssignmentCard> {
                       style: GoogleFonts.lato(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: isCompleted ? Colors.green.shade800 : Colors.orange.shade800,
+                        color: isCompleted ? Colors.green.shade700 : Colors.orange.shade700,
                       ),
                     ),
                   ],

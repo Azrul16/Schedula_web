@@ -5,12 +5,139 @@ import 'package:schedula/assignments/assignment_bottom_sheet.dart';
 import 'package:schedula/assignments/assignment_card.dart';
 import 'package:schedula/utils/auth_gate.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:schedula/services/subscription_service.dart';
+import 'package:schedula/userAccounts/subscription_screen.dart';
 
-class AssignmentsPage extends StatelessWidget {
+class AssignmentsPage extends StatefulWidget {
   const AssignmentsPage({super.key});
 
   @override
+  State<AssignmentsPage> createState() => _AssignmentsPageState();
+}
+
+class _AssignmentsPageState extends State<AssignmentsPage> {
+  final SubscriptionService _subscriptionService = SubscriptionService();
+  bool _isLoading = true;
+  bool _isSubscribed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkSubscription();
+  }
+
+  Future<void> _checkSubscription() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
+    final isSubscribed = await _subscriptionService.checkSubscription(userId);
+    setState(() {
+      _isSubscribed = isSubscribed;
+      _isLoading = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (!_isSubscribed) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(
+            "Assignments",
+            style: GoogleFonts.lato(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          centerTitle: true,
+          backgroundColor: Colors.blue.shade700,
+          elevation: 4,
+        ),
+        body: Container(
+          width: double.infinity,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF74ebd5), Color(0xFFACB6E5)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.lock_outline_rounded,
+                      size: 90,
+                      color: Colors.white.withOpacity(0.9),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Subscribe to Access Assignments',
+                      style: GoogleFonts.lato(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Unlock course assignments and deadlines with a subscription.',
+                      style: GoogleFonts.lato(
+                        fontSize: 16,
+                        color: Colors.white70,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 30),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.blue.shade700,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 28,
+                          vertical: 14,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        elevation: 6,
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SubscriptionScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.star),
+                      label: const Text(
+                        'Subscribe Now',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -22,34 +149,6 @@ class AssignmentsPage extends StatelessWidget {
         ),
         centerTitle: true,
         backgroundColor: Colors.blue,
-        actions: [
-          FutureBuilder<bool>(
-            future: GlobalUtils.isCaptain(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SizedBox.shrink();
-              }
-              if (snapshot.hasData && snapshot.data == true) {
-                return IconButton(
-                  onPressed: () {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(20),
-                        ),
-                      ),
-                      builder: (context) => const CreateAssignmentBottomSheet(),
-                    );
-                  },
-                  icon: const Icon(Icons.add),
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-        ],
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -80,7 +179,6 @@ class AssignmentsPage extends StatelessWidget {
                   FirebaseFirestore.instance
                       .collection('assignments')
                       .where('semester', isEqualTo: semesterSnapshot.data)
-                      .orderBy('createdAt', descending: true)
                       .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -162,7 +260,33 @@ class AssignmentsPage extends StatelessWidget {
           },
         ),
       ),
-      floatingActionButton: null,
+      floatingActionButton: FutureBuilder<bool>(
+        future: GlobalUtils.isCaptain(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const SizedBox.shrink();
+          }
+          if (snapshot.hasData && snapshot.data == true) {
+            return FloatingActionButton(
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
+                  ),
+                  builder: (context) => const CreateAssignmentBottomSheet(),
+                );
+              },
+              backgroundColor: Colors.blue,
+              child: const Icon(Icons.add),
+            );
+          }
+          return const SizedBox.shrink();
+        },
+      ),
     );
   }
 }

@@ -31,12 +31,12 @@ class AnnounceItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return PaperCard(
       backgroundColor: Colors.purple[300],
-      borderRadius: 24,
+      borderRadius: 20,
       elevation: 6,
-      borderColor: Colors.blue[600],
-      borderThickness: 12,
-      textureOpacity: 2,
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      borderColor: Colors.blue[700],
+      borderThickness: 2,
+      textureOpacity: 0.5,
+      margin: const EdgeInsets.all(12),
       textureFit: BoxFit.cover,
       texture: true,
       child: Column(
@@ -47,7 +47,7 @@ class AnnounceItem extends StatelessWidget {
                 children: [
                   Padding(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     child: Text(
                       announceItem.title,
                       style: GoogleFonts.getFont(
@@ -62,11 +62,12 @@ class AnnounceItem extends StatelessWidget {
                     onPressed: () {},
                     icon: const Icon(Icons.delete),
                     color: Colors.redAccent,
+                    tooltip: 'Delete Announcement',
                   )
                 ],
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 child: Text(
                   announceItem.description,
                   style: GoogleFonts.getFont(
@@ -88,6 +89,7 @@ class AnnounceItem extends StatelessWidget {
                         Icons.download,
                         color: Colors.purple,
                       ),
+                      tooltip: 'Download Note',
                     ),
                   ],
                 ),

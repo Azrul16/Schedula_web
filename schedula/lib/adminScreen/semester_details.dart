@@ -15,17 +15,25 @@ class SemesterDetails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          '${semester.name} Semester Details',
-          style: GoogleFonts.lato(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(70),
+        child: AppBar(
+          title: Text(
+            '${semester.name} Semester Details',
+            style: GoogleFonts.lato(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: 24,
+            ),
           ),
+          backgroundColor: Colors.orange[900],
+          elevation: 4,
+          centerTitle: false,
         ),
-        backgroundColor: Colors.orange[900],
       ),
       body: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -36,7 +44,7 @@ class SemesterDetails extends StatelessWidget {
         child: GridView.count(
           padding: const EdgeInsets.all(16),
           crossAxisCount: 2,
-          childAspectRatio: 3/2,
+          childAspectRatio: 3 / 2,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
           children: [
@@ -83,33 +91,30 @@ class SemesterDetails extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Card(
-        elevation: 6,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        elevation: 4,
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [color.withOpacity(0.3), color.withOpacity(0.15)],
+              colors: [color.withOpacity(0.2), color.withOpacity(0.1)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(4),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 48, color: color),
-              const SizedBox(height: 12),
+              Icon(icon, size: 40, color: color),
+              const SizedBox(height: 8),
               Text(
                 title,
                 style: GoogleFonts.lato(
-                  fontSize: 22,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: color,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               StreamBuilder<int>(
                 stream: countStream,
                 builder: (context, snapshot) {
@@ -119,7 +124,7 @@ class SemesterDetails extends StatelessWidget {
                   return Text(
                     '${snapshot.data ?? 0}',
                     style: GoogleFonts.lato(
-                      fontSize: 28,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: color,
                     ),

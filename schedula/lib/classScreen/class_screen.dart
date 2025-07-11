@@ -20,11 +20,10 @@ class _ClassScrenState extends State<ClassScren> {
   void _openAddClassOverlay() async {
     User? currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
-      DocumentSnapshot userDoc =
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(currentUser.uid)
-              .get();
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
 
       if (userDoc.exists && userDoc.data() != null) {
         var userData = userDoc.data() as Map<String, dynamic>;
@@ -34,18 +33,17 @@ class _ClassScrenState extends State<ClassScren> {
           useSafeArea: true,
           isScrollControlled: true,
           context: context,
-          builder:
-              (ctx) => Padding(
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(ctx).viewInsets.bottom,
-                ),
-                child: NewClass(
-                  onAddClass: _addClass,
-                  currentUserId: currentUser.uid,
-                  semester: userData['semister'] ?? '',
-                  isCaptain: userData['isCaptain'] ?? false,
-                ),
-              ),
+          builder: (ctx) => Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom,
+            ),
+            child: NewClass(
+              onAddClass: _addClass,
+              currentUserId: currentUser.uid,
+              semester: userData['semister'] ?? '',
+              isCaptain: userData['isCaptain'] ?? false,
+            ),
+          ),
         );
       }
     }
@@ -66,42 +64,27 @@ class _ClassScrenState extends State<ClassScren> {
     });
 
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.amber,
-        title: Text(
-          'Classes',
-          style: GoogleFonts.lato(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(70),
+        child: AppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.amber,
+          title: Text(
+            'Classes',
+            style: GoogleFonts.lato(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
+          elevation: 4,
+          centerTitle: false,
         ),
-        actions: [
-          FutureBuilder<bool>(
-            future: GlobalUtils.isCaptain(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SizedBox.shrink();
-              }
-              if (snapshot.hasData && snapshot.data == true) {
-                return TextButton(
-                  onPressed: _openAddClassOverlay,
-                  child: const Text(
-                    'Add Class',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-        ],
       ),
       backgroundColor: Colors.white,
       body: Container(
-        height: double.infinity,
-        decoration: const BoxDecoration(),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
         child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -119,49 +102,50 @@ class _ClassScrenState extends State<ClassScren> {
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: List.generate(7, (index) {
-                  bool isToday =
-                      weekDates[index].day == now.day &&
-                      weekDates[index].month == now.month;
-                  return Column(
-                    children: [
-                      Text(
-                        weekdays[index],
-                        style: GoogleFonts.lato(
-                          fontWeight:
-                              isToday ? FontWeight.bold : FontWeight.normal,
-                          color: isToday ? Colors.amber[900] : Colors.grey,
-                          fontSize: 16,
+                children: List.generate(
+                  7,
+                  (index) {
+                    bool isToday = weekDates[index].day == now.day &&
+                        weekDates[index].month == now.month;
+                    return Column(
+                      children: [
+                        Text(
+                          weekdays[index],
+                          style: GoogleFonts.lato(
+                            fontWeight:
+                                isToday ? FontWeight.bold : FontWeight.normal,
+                            color: isToday ? Colors.amber[900] : Colors.grey,
+                            fontSize: 16,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        weekDates[index].day.toString(),
-                        style: GoogleFonts.lato(
-                          fontWeight:
-                              isToday ? FontWeight.bold : FontWeight.normal,
-                          color: isToday ? Colors.amber[900] : Colors.black,
-                          fontSize: 18,
+                        const SizedBox(height: 4),
+                        Text(
+                          weekDates[index].day.toString(),
+                          style: GoogleFonts.lato(
+                            fontWeight:
+                                isToday ? FontWeight.bold : FontWeight.normal,
+                            color: isToday ? Colors.amber[900] : Colors.black,
+                            fontSize: 18,
+                          ),
                         ),
-                      ),
-                      if (isToday)
-                        Container(
-                          margin: const EdgeInsets.only(top: 2),
-                          height: 2,
-                          width: 20,
-                          color: Colors.amber[900],
-                        ),
-                    ],
-                  );
-                }),
+                        if (isToday)
+                          Container(
+                            margin: const EdgeInsets.only(top: 2),
+                            height: 2,
+                            width: 20,
+                            color: Colors.amber[900],
+                          ),
+                      ],
+                    );
+                  },
+                ),
               ),
               const SizedBox(height: 20),
               FutureBuilder<DocumentSnapshot>(
-                future:
-                    FirebaseFirestore.instance
-                        .collection('users')
-                        .doc(FirebaseAuth.instance.currentUser!.uid)
-                        .get(),
+                future: FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(FirebaseAuth.instance.currentUser!.uid)
+                    .get(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
@@ -181,8 +165,26 @@ class _ClassScrenState extends State<ClassScren> {
           ),
         ),
       ),
-      floatingActionButton: null,
-      floatingActionButtonLocation: null,
+      floatingActionButton: FutureBuilder<bool>(
+        future: GlobalUtils.isCaptain(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const SizedBox.shrink();
+          }
+          if (snapshot.hasData && snapshot.data == true) {
+            return FloatingActionButton(
+              onPressed: _openAddClassOverlay,
+              backgroundColor: Colors.amber,
+              child: const Icon(
+                Icons.add,
+                color: Colors.white,
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        },
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

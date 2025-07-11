@@ -8,29 +8,30 @@ class PermissionHandler {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Request all necessary app permissions
-  static Future<Map<Permission, bool>> requestAppPermissions(
-    BuildContext context,
-  ) async {
+  static Future<Map<Permission, bool>> requestAppPermissions(BuildContext context) async {
     Map<Permission, bool> statuses = {};
 
     // List of permissions needed by the app
-    final permissions = <Permission>[];
+    final permissions = [
+      Permission.notification,  // For push notifications
+      Permission.storage,      // For file upload/download
+      Permission.photos,       // For image picking
+      Permission.camera,       // For taking photos
+      Permission.microphone,   // For voice notes (if needed)
+      Permission.mediaLibrary, // For media access
+    ];
 
     // Request each permission
     for (var permission in permissions) {
       if (await permission.isDenied) {
         // Show rationale before requesting permission
         String rationale = _getPermissionRationale(permission);
-        bool shouldRequest = await _showPermissionRationale(
-          context,
-          permission,
-          rationale,
-        );
-
+        bool shouldRequest = await _showPermissionRationale(context, permission, rationale);
+        
         if (shouldRequest) {
           final status = await permission.request();
           statuses[permission] = status.isGranted;
-
+          
           // If permission is permanently denied, open app settings
           if (status.isPermanentlyDenied) {
             await _showSettingsDialog(context, permission);
@@ -47,59 +48,50 @@ class PermissionHandler {
   }
 
   // Show permission rationale dialog
-  static Future<bool> _showPermissionRationale(
-    BuildContext context,
-    Permission permission,
-    String rationale,
-  ) async {
+  static Future<bool> _showPermissionRationale(BuildContext context, Permission permission, String rationale) async {
     final result = await showDialog<bool>(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('Permission Required'),
-            content: Text(rationale),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text('Deny'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: Text('Allow'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: Text('Permission Required'),
+        content: Text(rationale),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('Deny'),
           ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text('Allow'),
+          ),
+        ],
+      ),
     );
     return result ?? false;
   }
 
   // Show settings dialog when permission is permanently denied
-  static Future<void> _showSettingsDialog(
-    BuildContext context,
-    Permission permission,
-  ) async {
+  static Future<void> _showSettingsDialog(BuildContext context, Permission permission) async {
     final result = await showDialog<bool>(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('Permission Required'),
-            content: Text(
-              'This feature requires ${_getPermissionName(permission)}. Please enable it in app settings.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () async {
-                  Navigator.of(context).pop(true);
-                  await openAppSettings();
-                },
-                child: Text('Open Settings'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: Text('Permission Required'),
+        content: Text(
+          'This feature requires ${_getPermissionName(permission)}. Please enable it in app settings.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('Cancel'),
           ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop(true);
+              await openAppSettings();
+            },
+            child: Text('Open Settings'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -168,18 +160,11 @@ class PermissionHandler {
   }
 
   // Request specific permission with rationale
-  static Future<bool> requestSpecificPermission(
-    BuildContext context,
-    Permission permission,
-  ) async {
+  static Future<bool> requestSpecificPermission(BuildContext context, Permission permission) async {
     if (await permission.isDenied) {
       String rationale = _getPermissionRationale(permission);
-      bool shouldRequest = await _showPermissionRationale(
-        context,
-        permission,
-        rationale,
-      );
-
+      bool shouldRequest = await _showPermissionRationale(context, permission, rationale);
+      
       if (shouldRequest) {
         final status = await permission.request();
         if (status.isPermanentlyDenied) {
@@ -198,7 +183,10 @@ class PermissionHandler {
       final user = _auth.currentUser;
       if (user == null) return false;
 
-      final userDoc = await _firestore.collection('users').doc(user.uid).get();
+      final userDoc = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .get();
 
       return userDoc.data()?['isCaptain'] ?? false;
     } catch (e) {
@@ -213,7 +201,10 @@ class PermissionHandler {
       final user = _auth.currentUser;
       if (user == null) return false;
 
-      final userDoc = await _firestore.collection('users').doc(user.uid).get();
+      final userDoc = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .get();
 
       return userDoc.data()?['semister'] == contentSemester;
     } catch (e) {
@@ -231,7 +222,7 @@ class PermissionHandler {
   static Future<bool> canViewContent(String contentSemester) async {
     final isCaptain = await isCurrentUserCaptain();
     final hasSemesterAccess = await hasAccessToSemesterContent(contentSemester);
-
+    
     // Captains can view all content, others only their semester's content
     return isCaptain || hasSemesterAccess;
   }
@@ -242,7 +233,10 @@ class PermissionHandler {
       final user = _auth.currentUser;
       if (user == null) return null;
 
-      final userDoc = await _firestore.collection('users').doc(user.uid).get();
+      final userDoc = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .get();
 
       return userDoc.data()?['semister'];
     } catch (e) {

@@ -8,8 +8,9 @@ class ProfileDetails extends StatelessWidget {
 
   Future<Map<String, dynamic>?> getUserData() async {
     User? currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) return null;
-
+    if (currentUser == null) {
+      return null;
+    }
     String currentEmail = currentUser.email!;
     QuerySnapshot querySnapshot =
         await FirebaseFirestore.instance.collection('users').get();
@@ -37,19 +38,13 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  final List<String> semester = Semester.values.map((e) => e.name).toList();
-  String selectedSemester = Semester.First.name;
-  bool isCaptain = false;
-
   final Map<String, TextEditingController> _controllers = {
-    'firstName': TextEditingController(),
-    'lastName': TextEditingController(),
+    'name': TextEditingController(),
     'id': TextEditingController(),
     'reg': TextEditingController(),
     'email': TextEditingController(),
     'phone': TextEditingController(),
     'dept': TextEditingController(),
-    'varsity': TextEditingController(),
   };
   bool _isLoading = false;
 
@@ -88,16 +83,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (userData != null && mounted) {
       final user = UserModel.fromJson(userData);
       setState(() {
-        _controllers['firstName']!.text = user.fname;
-        _controllers['lastName']!.text = user.lname;
+        _controllers['name']!.text = '${user.fname} ${user.lname}';
         _controllers['id']!.text = user.id;
         _controllers['reg']!.text = user.reg;
         _controllers['email']!.text = user.email;
         _controllers['phone']!.text = user.phoneNumber;
         _controllers['dept']!.text = user.dept;
-        _controllers['varsity']!.text = user.varsity ?? '';
-        selectedSemester = user.semister.name;
-        isCaptain = user.isCaptain;
       });
     }
   }
@@ -110,23 +101,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        final userDoc =
-            await FirebaseFirestore.instance
-                .collection('users')
-                .where('email', isEqualTo: user.email)
-                .get();
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .where('email', isEqualTo: user.email)
+            .get();
 
         if (userDoc.docs.isNotEmpty) {
+          final nameParts = _controllers['name']!.text.split(' ');
+          final firstName = nameParts[0];
+          final lastName =
+              nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+
           await userDoc.docs.first.reference.update({
-            'fname': _controllers['firstName']!.text,
-            'lname': _controllers['lastName']!.text,
+            'fname': firstName,
+            'lname': lastName,
             'id': _controllers['id']!.text,
             'reg': _controllers['reg']!.text,
             'phoneNumber': _controllers['phone']!.text,
             'dept': _controllers['dept']!.text,
-            'varsity': _controllers['varsity']!.text,
-            'semister': selectedSemester,
-            'isCaptain': isCaptain,
           });
 
           if (mounted) {
@@ -167,30 +159,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return TextFormField(
       controller: controller,
       enabled: enabled,
-      validator:
-          validator ??
-          (value) =>
-              (value == null || value.isEmpty)
-                  ? 'This field is required'
-                  : null,
+      validator: validator ??
+          (value) {
+            if (value == null || value.isEmpty) {
+              return 'This field is required';
+            }
+            return null;
+          },
       decoration: InputDecoration(
         hintText: hintText,
         filled: true,
-        fillColor: Colors.grey[100],
-        contentPadding: const EdgeInsets.symmetric(
-          vertical: 18,
-          horizontal: 24,
-        ),
+        fillColor: Colors.grey[200],
+        contentPadding:
+            const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(40),
+          borderRadius: BorderRadius.circular(30),
           borderSide: BorderSide.none,
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(40),
-          borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
-        ),
       ),
-      style: const TextStyle(fontSize: 16),
     );
   }
 
@@ -199,214 +185,175 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        elevation: 0,
         centerTitle: true,
-        backgroundColor: const Color(0xFF1976D2),
-        title: const Text(
-          "Edit Profile",
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
+        elevation: 0,
+        backgroundColor: const Color(0xFF2196F3),
+        title: const Text("Edit Profile"),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-        child: Column(
-          children: [
-            const ProfilePic(
-              image:
-                  'https://st3.depositphotos.com/32927174/36182/v/450/depositphotos_361823194-stock-illustration-glowing-neon-line-create-account.jpg',
-            ),
-            const SizedBox(height: 30),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(18),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF2196F3), // Light blue (AppBar color)
+              Color(0xFF1976D2), // Darker blue
+            ],
+          ),
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              const SizedBox(height: 10),
+              ProfilePic(
+                image:
+                    'https://st3.depositphotos.com/32927174/36182/v/450/depositphotos_361823194-stock-illustration-glowing-neon-line-create-account.jpg',
+                imageUploadBtnPress: () {
+                  // Logic for uploading image
+                },
               ),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    // Name Fields
-                    Row(
-                      children: [
-                        Expanded(
-                          child: UserInfoEditField(
-                            text: "First Name",
-                            child: _buildTextFormField(
-                              controller: _controllers['firstName']!,
-                              hintText: "Enter first name",
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: UserInfoEditField(
-                            text: "Last Name",
-                            child: _buildTextFormField(
-                              controller: _controllers['lastName']!,
-                              hintText: "Enter last name",
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 15),
-                    UserInfoEditField(
-                      text: "ID",
-                      child: _buildTextFormField(
-                        controller: _controllers['id']!,
-                        hintText: "Student ID",
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                    UserInfoEditField(
-                      text: "Registration",
-                      child: _buildTextFormField(
-                        controller: _controllers['reg']!,
-                        hintText: "Registration number",
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                    UserInfoEditField(
-                      text: "Email",
-                      child: _buildTextFormField(
-                        controller: _controllers['email']!,
-                        hintText: "Email",
-                        enabled: false,
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                    UserInfoEditField(
-                      text: "Phone",
-                      child: _buildTextFormField(
-                        controller: _controllers['phone']!,
-                        hintText: "Phone number",
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                    UserInfoEditField(
-                      text: "Department",
-                      child: _buildTextFormField(
-                        controller: _controllers['dept']!,
-                        hintText: "Department",
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                    UserInfoEditField(
-                      text: "University",
-                      child: _buildTextFormField(
-                        controller: _controllers['varsity']!,
-                        hintText: "University",
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        const Text(
-                          'Semester:',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(width: 20),
-                        DropdownButton<String>(
-                          value: selectedSemester,
-                          borderRadius: BorderRadius.circular(10),
-                          items:
-                              semester.map((String s) {
-                                return DropdownMenuItem<String>(
-                                  value: s,
-                                  child: Text(s),
-                                );
-                              }).toList(),
-                          onChanged: (String? newValue) {
-                            if (newValue != null) {
-                              setState(() {
-                                selectedSemester = newValue;
-                              });
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        const Text(
-                          'Are you a CR?',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(width: 20),
-                        Checkbox(
-                          value: isCaptain,
-                          onChanged: (val) {
-                            setState(() => isCaptain = val ?? false);
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 30),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: const Icon(Icons.cancel),
-                          label: const Text("Cancel"),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.redAccent,
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 14,
-                              horizontal: 30,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                          ),
-                        ),
-                        ElevatedButton.icon(
-                          onPressed: _isLoading ? null : _saveProfile,
-                          icon: const Icon(Icons.save),
-                          label:
-                              _isLoading
-                                  ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                  : const Text("Save"),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF2196F3),
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 14,
-                              horizontal: 30,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                          ),
-                        ),
-                      ],
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.2),
+                      spreadRadius: 5,
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
                     ),
                   ],
                 ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      UserInfoEditField(
+                        text: "Name",
+                        child: _buildTextFormField(
+                          controller: _controllers['name']!,
+                          hintText: "Enter your full name",
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Name is required';
+                            }
+                            if (!value.contains(' ')) {
+                              return 'Please enter both first and last name';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      UserInfoEditField(
+                        text: "ID",
+                        child: _buildTextFormField(
+                          controller: _controllers['id']!,
+                          hintText: "Enter your ID",
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      UserInfoEditField(
+                        text: "Registration",
+                        child: _buildTextFormField(
+                          controller: _controllers['reg']!,
+                          hintText: "Enter your registration number",
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      UserInfoEditField(
+                        text: "Email",
+                        child: _buildTextFormField(
+                          controller: _controllers['email']!,
+                          hintText: "Enter your email",
+                          enabled: false,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      UserInfoEditField(
+                        text: "Phone",
+                        child: _buildTextFormField(
+                          controller: _controllers['phone']!,
+                          hintText: "Enter your phone number",
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Phone number is required';
+                            }
+                            if (value.length < 10) {
+                              return 'Please enter a valid phone number';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      UserInfoEditField(
+                        text: "Department",
+                        child: _buildTextFormField(
+                          controller: _controllers['dept']!,
+                          hintText: "Enter your department",
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 15, horizontal: 30),
+                            ),
+                            child: const Text(
+                              "Cancel",
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                          ElevatedButton(
+                            onPressed: _isLoading ? null : _saveProfile,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF2196F3),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 15, horizontal: 30),
+                            ),
+                            child: _isLoading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Text(
+                                    "Save",
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600),
+                                  ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -414,22 +361,34 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 }
 
 class ProfilePic extends StatelessWidget {
+  const ProfilePic({
+    super.key,
+    required this.image,
+    this.imageUploadBtnPress,
+  });
+
   final String image;
   final VoidCallback? imageUploadBtnPress;
-  const ProfilePic({super.key, required this.image, this.imageUploadBtnPress});
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       alignment: Alignment.bottomRight,
       children: [
-        CircleAvatar(radius: 60, backgroundImage: NetworkImage(image)),
+        CircleAvatar(
+          radius: 60,
+          backgroundImage: NetworkImage(image),
+        ),
         InkWell(
           onTap: imageUploadBtnPress,
           child: const CircleAvatar(
             radius: 18,
             backgroundColor: Colors.blue,
-            child: Icon(Icons.camera_alt, color: Colors.white, size: 20),
+            child: Icon(
+              Icons.camera_alt,
+              color: Colors.white,
+              size: 20,
+            ),
           ),
         ),
       ],
@@ -438,9 +397,14 @@ class ProfilePic extends StatelessWidget {
 }
 
 class UserInfoEditField extends StatelessWidget {
+  const UserInfoEditField({
+    super.key,
+    required this.text,
+    required this.child,
+  });
+
   final String text;
   final Widget child;
-  const UserInfoEditField({super.key, required this.text, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -449,7 +413,10 @@ class UserInfoEditField extends StatelessWidget {
       children: [
         Text(
           text,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(height: 5),
         child,

@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -53,6 +54,7 @@ class _StartScreenState extends State<StartScreen> {
   @override
   void initState() {
     super.initState();
+    requesPermission();
     _pages = [
       const ClassScren(),
       const Center(
@@ -72,59 +74,146 @@ class _StartScreenState extends State<StartScreen> {
     _pageController.jumpToPage(index);
   }
 
+  Future<void> requesPermission() async {
+    // ignore: unused_local_variable
+    final notificationSettings = await FirebaseMessaging.instance
+        .requestPermission(provisional: true);
+
+    // For apple platforms, ensure the APNS token is available before making any FCM plugin API calls
+    final apnsToken = await FirebaseMessaging.instance.getToken();
+    if (apnsToken != null) {
+      print(apnsToken);
+      print('-----------------');
+    }
+  }
+
   @override
   Widget build(context) {
     return Scaffold(
-      body: Row(
-        children: [
-          NavigationRail(
-            selectedIndex: _currentIndex,
-            onDestinationSelected: (int index) {
-              onTappedBar(index);
-            },
-            labelType: NavigationRailLabelType.selected,
-            destinations: const <NavigationRailDestination>[
-              NavigationRailDestination(
-                icon: Icon(Icons.today_outlined),
-                selectedIcon: Icon(Icons.today),
-                label: Text('Classes'),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60),
+        child: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          automaticallyImplyLeading: false,
+          flexibleSpace: SafeArea(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              alignment: Alignment.centerRight,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextButton(
+                    onPressed: () => onTappedBar(0),
+                    child: Text(
+                      'Classes',
+                      style: TextStyle(
+                        color: _currentIndex == 0 ? Colors.black : Colors.grey,
+                        fontWeight:
+                            _currentIndex == 0
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  TextButton(
+                    onPressed: () => onTappedBar(1),
+                    child: Text(
+                      'Notes',
+                      style: TextStyle(
+                        color: _currentIndex == 1 ? Colors.black : Colors.grey,
+                        fontWeight:
+                            _currentIndex == 1
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  TextButton(
+                    onPressed: () => onTappedBar(2),
+                    child: Text(
+                      'Assignments',
+                      style: TextStyle(
+                        color: _currentIndex == 2 ? Colors.black : Colors.grey,
+                        fontWeight:
+                            _currentIndex == 2
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  TextButton(
+                    onPressed: () => onTappedBar(3),
+                    child: Text(
+                      'Chat',
+                      style: TextStyle(
+                        color: _currentIndex == 3 ? Colors.black : Colors.grey,
+                        fontWeight:
+                            _currentIndex == 3
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  TextButton(
+                    onPressed: () => onTappedBar(4),
+                    child: Text(
+                      'Profile',
+                      style: TextStyle(
+                        color: _currentIndex == 4 ? Colors.black : Colors.grey,
+                        fontWeight:
+                            _currentIndex == 4
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              NavigationRailDestination(
-                icon: Icon(Icons.menu_book_outlined),
-                selectedIcon: Icon(Icons.menu_book),
-                label: Text('Notes'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.campaign_outlined),
-                selectedIcon: Icon(Icons.campaign),
-                label: Text('Assignments'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.chat_outlined),
-                selectedIcon: Icon(Icons.chat),
-                label: Text('Chat'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.person_outline),
-                selectedIcon: Icon(Icons.person),
-                label: Text('Profile'),
+            ),
+          ),
+        ),
+      ),
+      body: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 900),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
               ),
             ],
           ),
-          const VerticalDivider(thickness: 1, width: 1),
-          Expanded(
-            child: PageView(
-              controller: _pageController,
-              children: _pages,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
-              },
-            ),
+          padding: const EdgeInsets.all(16),
+          child: PageView(
+            controller: _pageController,
+            children: _pages,
+            onPageChanged: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
           ),
-        ],
+        ),
       ),
     );
   }
 }
+
+
+// _pageController.animateToPage(_currentIndex,
+//               duration: const Duration(milliseconds: 400),
+//               curve: Curves.easeOutQuad);

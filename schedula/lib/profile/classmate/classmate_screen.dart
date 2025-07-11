@@ -8,20 +8,23 @@ class ClassmateScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.blue.shade800,
-        title: Text(
-          'Classmates',
-          style: GoogleFonts.getFont(
-            'Belanosima',
-            textStyle: const TextStyle(
-              fontSize: 24,
-              color: Colors.white,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(70),
+        child: AppBar(
+          backgroundColor: Colors.blue.shade800,
+          title: Text(
+            'Classmates',
+            style: GoogleFonts.getFont(
+              'Belanosima',
+              textStyle: const TextStyle(
+                fontSize: 28,
+                color: Colors.white,
+              ),
             ),
           ),
+          centerTitle: true,
+          elevation: 4,
         ),
-        centerTitle: true,
-        elevation: 0,
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -33,7 +36,7 @@ class ClassmateScreen extends StatelessWidget {
         ),
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(40.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

@@ -34,6 +34,17 @@ void showToastMessageProceed(String message) {
       fontSize: 16.0);
 }
 
+void showToastMessageSuccess(String message) {
+  Fluttertoast.showToast(
+      msg: message,
+      toastLength: Toast.LENGTH_LONG,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.green,
+      textColor: Colors.white,
+      fontSize: 16.0);
+}
+
 void showToastMessageDownloading(String message, BuildContext context) {
   final scaffold = ScaffoldMessenger.of(context);
   scaffold.showSnackBar(

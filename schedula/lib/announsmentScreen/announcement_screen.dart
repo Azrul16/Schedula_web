@@ -36,38 +36,60 @@ class _AnnouncementscreenState extends State<Announcementscreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Announcements',
-          style: GoogleFonts.lato(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(70),
+        child: AppBar(
+          title: Text(
+            'Announcements',
+            style: GoogleFonts.getFont(
+              'Lumanosimo',
+              textStyle: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
-        ),
-        backgroundColor: Colors.purple,
-        actions: [
-          FutureBuilder<bool>(
-            future: GlobalUtils.isCaptain(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
+          backgroundColor: Colors.purple,
+          elevation: 4,
+          centerTitle: false,
+          actions: [
+            FutureBuilder<bool>(
+              future: GlobalUtils.isCaptain(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const SizedBox.shrink();
+                }
+                if (snapshot.hasData && snapshot.data == true) {
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 24.0),
+                    child: TextButton.icon(
+                      onPressed: onAddAnnounceOverlay,
+                      icon: const Icon(Icons.add, color: Colors.white),
+                      label: const Text(
+                        'Add Announcement',
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.deepPurple,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  );
+                }
                 return const SizedBox.shrink();
-              }
-              if (snapshot.hasData && snapshot.data == true) {
-                return TextButton(
-                  onPressed: onAddAnnounceOverlay,
-                  child: const Text(
-                    'Add Announcement',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-        ],
+              },
+            ),
+          ],
+        ),
       ),
       body: Container(
-        padding: const EdgeInsets.all(24),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
+        decoration: const BoxDecoration(),
         child: SingleChildScrollView(
           child: Column(
             children: const [

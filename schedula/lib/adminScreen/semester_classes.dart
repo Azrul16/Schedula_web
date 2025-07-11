@@ -47,29 +47,29 @@ class SemesterClasses extends StatelessWidget {
         _mapSemesterNameToFirestoreValue(semester.name);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          '${semester.name} Classes',
-          style: GoogleFonts.lato(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(70),
+        child: AppBar(
+          title: Text(
+            '${semester.name} Classes',
+            style: GoogleFonts.lato(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: 24,
+            ),
           ),
+          backgroundColor: Colors.green,
+          elevation: 4,
+          centerTitle: false,
         ),
-        backgroundColor: Colors.green,
       ),
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.green.shade50, Colors.white],
-          ),
-        ),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
         child: StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('classes')
               .where('semester', isEqualTo: firestoreSemesterValue)
-              .orderBy('time', descending: false)
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -155,28 +155,31 @@ class SemesterClasses extends StatelessWidget {
                     length: 2,
                     child: Column(
                       children: [
-                        TabBar(
-                          tabs: [
-                            Tab(
-                              child: Text(
-                                'Upcoming (${upcomingClasses.length})',
-                                style: GoogleFonts.lato(
-                                  color: Colors.green[900],
-                                  fontWeight: FontWeight.bold,
+                        Container(
+                          color: Colors.green.shade50,
+                          child: TabBar(
+                            tabs: [
+                              Tab(
+                                child: Text(
+                                  'Upcoming (${upcomingClasses.length})',
+                                  style: GoogleFonts.lato(
+                                    color: Colors.green[900],
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
-                            ),
-                            Tab(
-                              child: Text(
-                                'Past (${pastClasses.length})',
-                                style: GoogleFonts.lato(
-                                  color: Colors.green[900],
-                                  fontWeight: FontWeight.bold,
+                              Tab(
+                                child: Text(
+                                  'Past (${pastClasses.length})',
+                                  style: GoogleFonts.lato(
+                                    color: Colors.green[900],
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                          indicatorColor: Colors.green[900],
+                            ],
+                            indicatorColor: Colors.green[900],
+                          ),
                         ),
                         Expanded(
                           child: TabBarView(
@@ -208,16 +211,16 @@ class SemesterClasses extends StatelessWidget {
         final bool isWithin24h = isWithinNext24Hours(classTime);
 
         return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          elevation: isWithin24h ? 6 : 4,
+          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          elevation: isWithin24h ? 4 : 2,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
             side: isWithin24h
                 ? BorderSide(color: Colors.green.shade700, width: 2)
                 : BorderSide.none,
           ),
           child: ListTile(
-            contentPadding: const EdgeInsets.all(20),
+            contentPadding: const EdgeInsets.all(16),
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -228,7 +231,7 @@ class SemesterClasses extends StatelessWidget {
                         data['course_title'] ?? 'No Course Title',
                         style: GoogleFonts.lato(
                           fontWeight: FontWeight.bold,
-                          fontSize: 20,
+                          fontSize: 18,
                           color:
                               isUpcoming ? Colors.green[900] : Colors.grey[700],
                         ),
@@ -237,18 +240,18 @@ class SemesterClasses extends StatelessWidget {
                     if (isWithin24h)
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
+                          horizontal: 8,
+                          vertical: 4,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.green.shade100,
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: Colors.green.shade700),
                         ),
                         child: Text(
                           'Next 24h',
                           style: GoogleFonts.lato(
-                            fontSize: 14,
+                            fontSize: 12,
                             fontWeight: FontWeight.bold,
                             color: Colors.green[900],
                           ),
@@ -256,11 +259,11 @@ class SemesterClasses extends StatelessWidget {
                       ),
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Text(
                   data['course_code'] ?? 'No Course Code',
                   style: GoogleFonts.lato(
-                    fontSize: 16,
+                    fontSize: 14,
                     color: Colors.grey[600],
                   ),
                 ),
@@ -269,37 +272,37 @@ class SemesterClasses extends StatelessWidget {
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 Row(
                   children: [
                     Icon(
                       Icons.person_outline,
-                      size: 18,
+                      size: 16,
                       color: Colors.green[700],
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 4),
                     Text(
                       data['course_teacher'] ?? 'Not specified',
                       style: GoogleFonts.lato(
-                        fontSize: 16,
+                        fontSize: 14,
                         color: Colors.grey[800],
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Row(
                   children: [
                     Icon(
                       Icons.access_time,
-                      size: 18,
+                      size: 16,
                       color: Colors.green[700],
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 4),
                     Text(
                       DateFormat('EEEE, MMM d, y • hh:mm a').format(classTime),
                       style: GoogleFonts.lato(
-                        fontSize: 16,
+                        fontSize: 14,
                         color: Colors.grey[800],
                       ),
                     ),

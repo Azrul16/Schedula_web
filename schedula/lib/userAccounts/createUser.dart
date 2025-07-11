@@ -3,7 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:schedula/userAccounts/login_page.dart';
 import 'package:schedula/userAccounts/user_model.dart';
+import 'package:schedula/userAccounts/varification_waiting_screen.dart';
 import 'package:schedula/utils/all_dialouge.dart';
 import 'package:schedula/utils/toast_message.dart';
 
@@ -32,245 +34,310 @@ class _CreateUser extends State<CreateUser> {
 
   final formKey = GlobalKey<FormState>();
 
+  Future<void> _showVerificationDialog({
+    required BuildContext context,
+    required User user,
+    required Map<String, dynamic> userData,
+  }) async {
+    bool isVerified = false;
+    bool isCancelled = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (context) => VerificationDialog(
+            user: user,
+            userData: userData,
+            onCancel: () {
+              isCancelled = true;
+              Navigator.of(context).pop();
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const Login()),
+              );
+            },
+            onVerified: () {
+              isVerified = true;
+              Navigator.of(context).pop();
+              Navigator.of(context).pop(); // Close the dialog
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const Login()),
+              );
+              showToastMessageSuccess('Account verified successfully!');
+            },
+          ),
+    );
+
+    while (!isVerified && !isCancelled) {
+      await user.reload();
+      if (user.emailVerified) {
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          ...userData,
+          'emailVerified': true,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+        if (mounted && context.mounted) {
+          Navigator.of(context).pop();
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const Login()),
+          );
+          showToastMessageSuccess('Account verified successfully!');
+        }
+        return;
+      }
+      await Future.delayed(const Duration(seconds: 3));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 238, 229, 189),
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.amber,
-        title: Text(
-          'Create New User',
-          style: GoogleFonts.lato(
-            fontWeight: FontWeight.bold,
-            fontSize: 30,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(70),
+        child: AppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.amber,
+          title: Text(
+            'Create New User',
+            style: GoogleFonts.lato(fontWeight: FontWeight.bold, fontSize: 30),
           ),
+          elevation: 4,
+          centerTitle: false,
         ),
       ),
       body: SingleChildScrollView(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 500),
-            child: Form(
-              key: formKey,
-              child: Column(
-                children: [
-                  const SizedBox(height: 50),
-                  Padding(
-                    padding: const EdgeInsets.all(30),
-                    child: Image.asset('assets/images/appstore.png'),
+        child: Form(
+          key: formKey,
+          child: Column(
+            children: [
+              const SizedBox(height: 50),
+              Padding(
+                padding: const EdgeInsets.all(30),
+                child: Image.asset('assets/images/appstore.png'),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: TextFormField(
+                  validator: (value) {
+                    if (value!.isNotEmpty) return null;
+                    return 'Please enter your first name';
+                  },
+                  controller: firstName,
+                  maxLength: 20,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                    label: Text('First Name', style: GoogleFonts.lato()),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: TextFormField(
-                      validator: (value) {
-                        if (value!.isNotEmpty) return null;
-                        return 'Please enter your first name';
-                      },
-                      controller: firstName,
-                      maxLength: 20,
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(
-                        label: Text('First Name', style: GoogleFonts.lato()),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: TextFormField(
+                  validator: (value) {
+                    if (value!.isNotEmpty) return null;
+                    return 'Please enter your last name';
+                  },
+                  controller: lastName,
+                  maxLength: 20,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                    label: Text('Last Name', style: GoogleFonts.lato()),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: Row(
+                  children: [
+                    Text(
+                      'Select Your Semester',
+                      style: GoogleFonts.lato(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: TextFormField(
-                      validator: (value) {
-                        if (value!.isNotEmpty) return null;
-                        return 'Please enter your last name';
-                      },
-                      controller: lastName,
-                      maxLength: 20,
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(
-                        label: Text('Last Name', style: GoogleFonts.lato()),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: Row(
-                      children: [
-                        Text(
-                          'Select Your Semester',
-                          style: GoogleFonts.lato(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(width: 30),
-                        DropdownButton<String>(
-                          value: selectedSmester,
-                          items: semester.map((String flavor) {
+                    const SizedBox(width: 30),
+                    DropdownButton<String>(
+                      value: selectedSmester,
+                      items:
+                          semester.map((String flavor) {
                             return DropdownMenuItem<String>(
                               value: flavor,
                               child: Text(flavor, style: GoogleFonts.lato()),
                             );
                           }).toList(),
-                          onChanged: (String? newValue) {
-                            if (newValue != null) {
-                              setState(() {
-                                selectedSmester = newValue;
-                              });
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Added CR checkbox
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: Row(
-                      children: [
-                        Text(
-                          'Are you a CR?',
-                          style: GoogleFonts.lato(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(width: 30),
-                        Checkbox(
-                          value: isCaptain,
-                          onChanged: (bool? value) {
-                            setState(() {
-                              isCaptain = value ?? false;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: TextFormField(
-                      controller: id,
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(
-                        label: Text('Student ID No:', style: GoogleFonts.lato()),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: TextFormField(
-                      controller: reg,
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(
-                        label: Text('Registration ID No:', style: GoogleFonts.lato()),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: TextFormField(
-                      controller: dept,
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(
-                        label: Text('Name of Department', style: GoogleFonts.lato()),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: TextFormField(
-                      controller: varsity,
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(
-                        label: Text('Name of University', style: GoogleFonts.lato()),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: TextFormField(
-                      controller: phoneNumber,
-                      maxLength: 11,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        label: Text('Phone Number', style: GoogleFonts.lato()),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: TextFormField(
-                      validator: (value) {
-                        if (value!.contains('@')) return null;
-                        return 'Please enter a valid email';
+                      onChanged: (String? newValue) {
+                        if (newValue != null) {
+                          setState(() {
+                            selectedSmester = newValue;
+                          });
+                        }
                       },
-                      controller: email,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: InputDecoration(
-                        label: Text('Email', style: GoogleFonts.lato()),
-                      ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: TextFormField(
-                      obscureText: true,
-                      controller: password,
-                      maxLength: 20,
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(
-                        label: Text('Password', style: GoogleFonts.lato()),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: Text(
-                      '[Password must contain at least one special character and one number]',
-                      style: GoogleFonts.lato(fontSize: 12),
-                      textAlign: TextAlign.end,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: TextFormField(
-                      validator: (value) {
-                        if (password.text == value) return null;
-                        return 'Confirm Password does not match';
-                      },
-                      obscureText: true,
-                      controller: cpassword,
-                      maxLength: 20,
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(
-                        label: Text('Confirm Password', style: GoogleFonts.lato()),
-                      ),
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: createAccount,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.amber,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 40,
-                        vertical: 15,
-                      ),
-                    ),
-                    child: Text(
-                      'Create Account',
-                      style: GoogleFonts.lato(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 100),
-                ],
+                  ],
+                ),
               ),
-            ),
+              // Added CR checkbox
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: Row(
+                  children: [
+                    Text(
+                      'Are you a CR?',
+                      style: GoogleFonts.lato(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 30),
+                    Checkbox(
+                      value: isCaptain,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          isCaptain = value ?? false;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: TextFormField(
+                  controller: id,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                    label: Text('Student ID No:', style: GoogleFonts.lato()),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: TextFormField(
+                  controller: reg,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                    label: Text(
+                      'Registration ID No:',
+                      style: GoogleFonts.lato(),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: TextFormField(
+                  controller: dept,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                    label: Text(
+                      'Name of Department',
+                      style: GoogleFonts.lato(),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: TextFormField(
+                  controller: varsity,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                    label: Text(
+                      'Name of University',
+                      style: GoogleFonts.lato(),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: TextFormField(
+                  controller: phoneNumber,
+                  maxLength: 11,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    label: Text('Phone Number', style: GoogleFonts.lato()),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: TextFormField(
+                  validator: (value) {
+                    if (value!.contains('@')) return null;
+                    return 'Please enter a valid email';
+                  },
+                  controller: email,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: InputDecoration(
+                    label: Text('Email', style: GoogleFonts.lato()),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: TextFormField(
+                  obscureText: true,
+                  controller: password,
+                  maxLength: 20,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                    label: Text('Password', style: GoogleFonts.lato()),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: Text(
+                  '[Password must contain at least one special character and one number]',
+                  style: GoogleFonts.lato(fontSize: 12),
+                  textAlign: TextAlign.end,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: TextFormField(
+                  validator: (value) {
+                    if (password.text == value) return null;
+                    return 'Confirm Password does not match';
+                  },
+                  obscureText: true,
+                  controller: cpassword,
+                  maxLength: 20,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                    label: Text('Confirm Password', style: GoogleFonts.lato()),
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: createAccount,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.amber,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 40,
+                    vertical: 15,
+                  ),
+                ),
+                child: Text(
+                  'Create Account',
+                  style: GoogleFonts.lato(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 100),
+            ],
           ),
         ),
       ),
@@ -287,7 +354,9 @@ class _CreateUser extends State<CreateUser> {
           varsity: varsity.text.trim(),
           fname: firstName.text.trim(),
           phoneNumber: phoneNumber.text.trim(),
-          semister: Semester.values.firstWhere((e) => e.name == selectedSmester),
+          semister: Semester.values.firstWhere(
+            (e) => e.name == selectedSmester,
+          ),
           email: email.text.trim(),
           id: id.text.trim(),
           reg: reg.text.trim(),
@@ -296,18 +365,29 @@ class _CreateUser extends State<CreateUser> {
 
         UserCredential userCredential = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(
-                email: email.text.trim(), password: password.text);
+              email: email.text.trim(),
+              password: password.text,
+            );
 
         final userID = userCredential.user!.uid;
 
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userID)
-            .set(userData.toJson());
+        // Send email verification
+        await userCredential.user!.sendEmailVerification();
+
+        // Save user data with verification status
+        await FirebaseFirestore.instance.collection('users').doc(userID).set({
+          ...userData.toJson(),
+          'emailVerified': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
 
         if (mounted) {
           Navigator.of(context).pop();
-          showToastMessageNormal('Account creation successful');
+          _showVerificationDialog(
+            context: context,
+            user: userCredential.user!,
+            userData: userData.toJson(),
+          );
         }
       } catch (e) {
         Navigator.of(context).pop();

@@ -35,7 +35,6 @@ class NotesList extends StatelessWidget {
           stream: FirebaseFirestore.instance
               .collection('notes')
               .where('semester', isEqualTo: semesterSnapshot.data)
-              .orderBy('created_at', descending: true)
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {

@@ -10,62 +10,35 @@ class AdminDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Admin Dashboard',
-          style: GoogleFonts.lato(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: Colors.orange[900],
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text(
-              'Logout',
-              style: TextStyle(color: Colors.white),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(70),
+        child: AppBar(
+          title: Text(
+            'Admin Dashboard',
+            style: GoogleFonts.lato(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: 28,
             ),
           ),
-        ],
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.orange[900],
-              ),
-              child: Text(
-                'Navigation',
-                style: GoogleFonts.lato(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+          backgroundColor: Colors.orange[900],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                'Logout',
+                style: TextStyle(color: Colors.white, fontSize: 18),
               ),
             ),
-            ListTile(
-              title: const Text('Dashboard'),
-              onTap: () {
-                // TODO: Navigate to Dashboard
-              },
-            ),
-            ListTile(
-              title: const Text('Semesters'),
-              onTap: () {
-                // TODO: Navigate to Semesters
-              },
-            ),
-            // Add more navigation items as needed
+            const SizedBox(width: 20),
           ],
+          elevation: 4,
+          centerTitle: false,
         ),
       ),
       body: Container(
-        padding: const EdgeInsets.all(24),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -77,30 +50,38 @@ class AdminDashboard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Card(
-              elevation: 5,
+              elevation: 6,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
-                child: Text(
-                  'Semester Management',
-                  style: GoogleFonts.lato(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.orange[900],
+                child: Center(
+                  child: Text(
+                    'Semester Management',
+                    style: GoogleFonts.lato(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange[900],
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 30),
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  int crossAxisCount = 3;
-                  if (constraints.maxWidth < 600) {
-                    crossAxisCount = 1;
-                  } else if (constraints.maxWidth < 900) {
-                    crossAxisCount = 2;
+                  int crossAxisCount = 2;
+                  double width = constraints.maxWidth;
+                  if (width > 1200) {
+                    crossAxisCount = 4;
+                  } else if (width > 800) {
+                    crossAxisCount = 3;
                   }
                   return GridView.builder(
+                    padding: const EdgeInsets.all(16),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: crossAxisCount,
                       childAspectRatio: 3 / 2,
@@ -110,42 +91,55 @@ class AdminDashboard extends StatelessWidget {
                     itemCount: Semester.values.length,
                     itemBuilder: (context, index) {
                       final semester = Semester.values[index];
-                      return InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => SemesterDetails(semester: semester),
+                      return MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    SemesterDetails(semester: semester),
+                              ),
+                            );
+                          },
+                          child: Card(
+                            elevation: 8,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                          );
-                        },
-            child: Card(
-              elevation: 6,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.orange.shade200, Colors.orange.shade100],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Center(
-                  child: Text(
-                    '${semester.name} Semester',
-                    style: GoogleFonts.lato(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.orange[900],
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: InkWell(
+                              onHover: (hovering) {
+                                // Add hover effect if needed
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.orange.shade100,
+                                      Colors.orange.shade50
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    '${semester.name} Semester',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.orange[900],
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       );
                     },
                   );

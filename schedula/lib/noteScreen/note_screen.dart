@@ -6,14 +6,20 @@ import 'package:schedula/noteScreen/new_note.dart';
 import 'package:schedula/noteScreen/notes_list.dart';
 import 'package:schedula/noteScreen/notes_model.dart';
 import 'package:schedula/utils/auth_gate.dart';
+import 'package:schedula/services/subscription_service.dart';
+import 'package:schedula/userAccounts/subscription_screen.dart';
 
 class NoteScreen extends StatefulWidget {
   const NoteScreen({
     super.key,
-    required String currentUserId,
-    required semester,
-    required isCaptain,
+    required this.currentUserId,
+    required this.semester,
+    required this.isCaptain,
   });
+
+  final String currentUserId;
+  final String semester;
+  final bool isCaptain;
 
   @override
   State<NoteScreen> createState() => _NoteScreenState();
@@ -21,6 +27,25 @@ class NoteScreen extends StatefulWidget {
 
 class _NoteScreenState extends State<NoteScreen> {
   final List<ClassNotes> selectedNote = [];
+  final SubscriptionService _subscriptionService = SubscriptionService();
+  bool _isLoading = true;
+  bool _isSubscribed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkSubscription();
+  }
+
+  Future<void> _checkSubscription() async {
+    final isSubscribed = await _subscriptionService.checkSubscription(
+      widget.currentUserId,
+    );
+    setState(() {
+      _isSubscribed = isSubscribed;
+      _isLoading = false;
+    });
+  }
 
   void _onAddNotesOverlay() async {
     User? currentUser = FirebaseAuth.instance.currentUser;
@@ -57,43 +82,164 @@ class _NoteScreenState extends State<NoteScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Notes',
-          style: GoogleFonts.lato(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (!_isSubscribed) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(
+            'Notes',
+            style: GoogleFonts.lato(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          centerTitle: true,
+          backgroundColor: Colors.green.shade700,
+          elevation: 4,
+        ),
+        body: Container(
+          width: double.infinity,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFFa8e063), Color(0xFF56ab2f)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.lock_outline_rounded,
+                      size: 100,
+                      color: Colors.white.withOpacity(0.85),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Subscribe to Unlock Notes',
+                      style: GoogleFonts.lato(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Premium class notes are just one step away.',
+                      style: GoogleFonts.lato(
+                        fontSize: 18,
+                        color: Colors.white70,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 30),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.green.shade800,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 28,
+                          vertical: 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        elevation: 6,
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SubscriptionScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.star),
+                      label: const Text(
+                        'Subscribe Now',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
-        backgroundColor: Colors.green,
-        actions: [
-          FutureBuilder<bool>(
-            future: GlobalUtils.isCaptain(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SizedBox.shrink();
-              }
-              if (snapshot.hasData && snapshot.data == true) {
-                return TextButton(
-                  onPressed: _onAddNotesOverlay,
-                  child: const Text(
-                    'Add Note',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                );
-              }
-              return const SizedBox.shrink();
-            },
+      );
+    }
+
+    return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(70),
+        child: AppBar(
+          title: Text(
+            'Notes',
+            style: GoogleFonts.lato(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
-        ],
+          backgroundColor: Colors.green,
+          elevation: 4,
+          centerTitle: false,
+          actions: [
+            FutureBuilder<bool>(
+              future: GlobalUtils.isCaptain(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const SizedBox.shrink();
+                }
+                if (snapshot.hasData && snapshot.data == true) {
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 24.0),
+                    child: TextButton.icon(
+                      onPressed: _onAddNotesOverlay,
+                      icon: const Icon(Icons.add, color: Colors.white),
+                      label: const Text(
+                        'Add Note',
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.green.shade700,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ],
+        ),
       ),
-      body: SingleChildScrollView(
-        child: Column(children: [NotesList(selectedNote: selectedNote)]),
+      body: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
+        child: SingleChildScrollView(
+          child: Column(children: [NotesList(selectedNote: selectedNote)]),
+        ),
       ),
-      floatingActionButton: null,
-      floatingActionButtonLocation: null,
     );
   }
 }
